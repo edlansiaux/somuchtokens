@@ -4,13 +4,13 @@
 
 ## Description
 
-A Twitter bot that generates BEP20 tokens of anything to illuminate the absurdity of all. This bot allows Twitter users via an in-app command line to create a BEP20 token on the primary or test Binance Smart Chain (BSC) network.
+A Twitter bot that generates ERC20 tokens of anything to illuminate the absurdity of all. This bot allows Twitter users via an in-app command line to create a ERC20 token on the Polygon network and Mumbai-Testnet.
 
-We use [the provided token generator](https://vittominacori.github.io/bep20-generator/create-token/) developed by [Vitto Minacori](https://vittominacori.github.io/) . 
+We use [the Continuous Organisation](https://github.com/C-ORG/c-org) developed by [Fairmint](https://www.fairmint.co/) . 
 
 ## Requirements
 
-- A [Metamask](https://metamask.io/) wallet [already connected to BSC and BSC-Testnet](https://academy.binance.com/en/articles/connecting-metamask-to-binance-smart-chain) (with some BNBs on the deployement chain).
+- A [Metamask](https://metamask.io/) wallet [already connected to Polygon network](https://docs.polygon.technology/docs/develop/metamask/config-polygon-on-metamask/).
 - A Twitter account.
 
 ## License

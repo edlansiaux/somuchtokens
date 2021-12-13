@@ -1,68 +1,44 @@
-from selenium import webdriver
-from selenium.webdriver.remote.webdriver import WebDriver
+import tweepy
+import logging
+import time
+import os 
 
-opt = webdriver.ChromeOptions()
-preferences = {"directory_upgrade": True,
-               "safebrowsing.enabled": True }
-opt.add_experimental_option("prefs", preferences)
-opt.add_extension('/mnt/c/Users/PATRICE LANSIAUX/AppData/Local/Google/Chrome/User Data/Default/Extensions/nkbihfbeogaeaoehlefnkodbefgpgknn/10.7.1_0.crx')
-driver = webdriver.Chrome(chrome_options=opt,executable_path=r'/mnt/c/bin/chromedriver.exe')
-EXTENSION_ID = 'nkbihfbeogaeaoehlefnkodbefgpgknn'
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
-#hack 
+#Check mention and tweets extraction
 
+def check_mentions(client, id, keywords, since_id, extracted):
+    logger.info("Retrieving mentions")
+    new_since_id = since_id
+    tweets = client.get_users_mentions(id=id, since_id=since_id)
+    liked = client.get_liked_tweets(id=id, user_fields=['profile_image_url'])
+    for tweet in tweets.data:
+      if any(keyword in tweet.text.lower() for keyword in keywords):
+        if all(keyword in tweet.text.lower() for keyword in keywords):
+            if not tweet in liked.data:
+              client.like(tweet.id)
+            else:
+              extracted.append(tweet.text)
+            
 
-# executor_url = driver.command_executor._url
-# session_id = driver.session_id
+#Main
+def main():
+    consumer_key = os.getenv("CONSUMER_KEY")
+    consumer_secret = os.getenv("CONSUMER_SECRET")
+    access_token = os.getenv("ACCESS_TOKEN")
+    access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
+    bearer_token= os.getenv('BEARER_TOKEN')
 
-def attach_to_session(executor_url, session_id):
-    original_execute = WebDriver.execute
-    def new_command_execute(self, command, params=None):
-        if command == "newSession":
-            # Mock the response
-            return {'success': 0, 'value': None, 'sessionId': session_id}
-        else:
-            return original_execute(self, command, params)
-    # Patch the function before creating the driver object
-    WebDriver.execute = new_command_execute
-    driver = webdriver.Remote(command_executor=executor_url, desired_capabilities={})
-    driver.session_id = session_id
-    # Replace the patched function with original function
-    WebDriver.execute = original_execute
-    return driver
+    id = '1387440864889278465'
+    client = tweepy.Client(bearer_token, consumer_key, consumer_secret, access_token, access_token_secret, wait_on_rate_limit=True)
+    
+    extracted =[]
 
+    since_id = 1
+    while True:
+        since_id = check_mentions(client, id, ["create", "name", "symbol", "address"], since_id, extracted)
+        logger.info("Waiting...")
+        time.sleep(20)
 
-
-#Interacting with metamask
-
-
-#Interacting with the form
-def fullfill():
-  url = "https://vittominacori.github.io/bep20-generator/create-token/"
-  driver.get(url)
-
-  name = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[1]/div/div[2]/span[1]/div/div/input")
-  name.send_keys("HVSE")
-
-  symbol = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[1]/div/div[2]/span[2]/div/div/input")
-  symbol.send_keys("HVSE")
-
-  token = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/div[1]/div[2]/div[1]/div/select")
-  tokensub = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/div[1]/div[2]/div[1]/div/select/option[1]")
-  tokensub.click()
-
-  network = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/div[1]/div[2]/div[2]/div/select")
-  NETWORK = "BSCT"
-  if NETWORK == "BSCT":
-    networksub = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/div[1]/div[2]/div[2]/div/select/option[2]")
-  if NETWORK == "BSC":
-    networksub = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/div[1]/div[2]/div[2]/div/select/option[1]")
-  networksub.click()
-
-  agree = driver.find_element_by_xpath("/html/body/div/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/div[2]/div[2]/span/div/div/div")
-  agree.click()
-
-  submit = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[1]/div[2]/div/div/div/form/fieldset/div/div[3]/button")
-  submit.click()
-
-#
+main()
